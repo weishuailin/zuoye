@@ -1,42 +1,28 @@
 var express = require('express');
-var path = require('path');
 var fs = require('fs');
-var http = require('http');
+var path = require('path');
 var bodyParser = require('body-parser');
+var session = require('express-session');
 var app = express();
-var users = [
 
-]
-app.set('view engine','ejs');
-app.set('views',path.resolve('views'));
-//注册
-app.use(express.static(path.join(__dirname,'public')));
+
+//设置模板引擎
+app.set('view engine', 'html');
+//设置模板存放目录
+app.set('views', path.resolve('views'));
+//如果模板的后缀是html的话，使用ejs来进行渲染
+app.engine('html',require('ejs').__express);
+//参数指定的是静态文件存放目录的绝对路径
+app.use(express.static(path.resolve('public')));
+var user = require('./routes/user');
+//此中间件如何知道请求的格式 json urlencoded 请求头中Content-Type application/x-www-form-urlencoded
+// application/json
+// 此中间件处理完成之后会在 req.body 请求体对象
+//如果为true表示 使用querystring
 app.use(bodyParser.urlencoded({extended:true}));
-app.get('/signup',function (req,res) {
-    res.render('signup',{title:'注册'});
-});
-app.post('/signup',function (req,res) {
-  users.push(req.body)
-    res.redirect('/signin')
+app.use(bodyParser.json());
 
-});
-//登录
-app.get('/signin',function (req,res) {
-    res.render('signin',{title:'登录'});
-});
-app.post('/signin',function (req,res) {
-    var user = req.body;
-      for(var i= 0;i<users.length;i++){
-          if(users[i].username==user.username&&users[i].password==user.password){
-              res.redirect('/welcome');return;
-          }
+app.use('/user', user);
 
-      }
-    res.redirect('/signup')
-});
 
-//欢迎页
-app.get('/welcome',function (req,res) {
-    res.render('welcome',{title:'欢迎'});
-});
-app.listen(1000);
+app.listen(8080);
